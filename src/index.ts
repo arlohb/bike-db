@@ -1,31 +1,12 @@
 import { sql } from "bun";
-
-interface Ride {
-    id: number,
-    ride_date: Date,
-    distance_km: number,
-    duration_sec: number,
-    avg_speed_kmh: number,
-};
-
-const parseRide = (ride: any): Ride => ({
-    id: ride.id,
-    ride_date: ride.ride_date,
-    distance_km: parseFloat(ride.distance_km),
-    duration_sec: parseFloat(ride.duration_sec),
-    avg_speed_kmh: parseFloat(ride.avg_speed_kmh),
-});
+import { getRide, openGpx } from "./gpx";
+import db from "./db";
 
 Bun.serve({
     port: 8080,
     routes: {
         "/get": async () => {
-            const rides: Ride[] = (await sql`SELECT * FROM rides`)
-                .map(parseRide);
-
-            for (const ride of rides) {
-                console.log(ride);
-            }
+            const rides = await db.get();
 
             return new Response(rides.map(r => JSON.stringify(r)).join());
         },
@@ -41,4 +22,7 @@ Bun.serve({
         },
     },
 });
+
+const gpx = await openGpx("/home/arlo/Nextcloud/tmp/gadgetbridge-running-20250814a.gpx");
+console.log(getRide(gpx));
 
