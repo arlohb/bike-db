@@ -2,10 +2,23 @@ import { sql } from "bun";
 import { readdir } from "node:fs/promises"
 import { getRide, openGpx } from "./gpx";
 import db from "./db";
+import signale from "signale";
 
 const CHECK_INTERVAL_SECS: number = 10;
 const CHECK_PATH: string = "/home/arlo/Nextcloud/BikeDB";
 const CHECK_RECURSIVE: boolean = false;
+
+signale.config({
+    displayDate: true,
+    displayTimestamp: true,
+    displayLabel: false,
+});
+
+signale.star("==================================");
+signale.star("=== Hello from bike-db server! ===");
+signale.star("==================================");
+
+signale.await("Starting web server...");
 
 Bun.serve({
     port: 8080,
@@ -28,20 +41,35 @@ Bun.serve({
     },
 });
 
+signale.start("Web server started!");
+
 const check = async () => {
+    signale.await("Scanning folder...");
+
     const files = (await readdir(CHECK_PATH, { recursive: CHECK_RECURSIVE }))
         .filter(name => name.endsWith(".gpx"))
 
-    for (const file of files) {
-        const gpx = await openGpx(`${CHECK_PATH}/${file}`);
-        const ride = getRide(gpx);
-        const exists = await db.isGpxPresent(ride.gadgetbridge_id);
-        if (!exists) {
-            await db.insert(ride);
-        }
-    }
+    const rides = await Promise.all(files
+        .map(async file => {
+            const gpx = await openGpx(`${CHECK_PATH}/${file}`);
+            return getRide(gpx);
+        }));
+
+    const doRidesExist = await Promise.all(rides
+        .map(ride => db.isGpxPresent(ride.gadgetbridge_id)));
+
+    const newRides = rides
+        .filter((_, index) => !doRidesExist[index])
+
+    await Promise.all(newRides.map(ride => {
+        signale.pending(`Found ride ${ride.gadgetbridge_id}: ${ride.distance_km.toFixed(1)}km`)
+        return db.insert(ride);
+    }));
+
+    signale.success(`Scanned folder! Found ${rides.length} total, ${newRides.length} new`);
 };
 
 setInterval(check, CHECK_INTERVAL_SECS * 1000);
+signale.start("Check timer started!");
 check();
 
