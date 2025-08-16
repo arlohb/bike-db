@@ -1,6 +1,11 @@
 import { sql } from "bun";
+import { readdir } from "node:fs/promises"
 import { getRide, openGpx } from "./gpx";
 import db from "./db";
+
+const CHECK_INTERVAL_SECS: number = 10;
+const CHECK_PATH: string = "/home/arlo/Nextcloud/BikeDB";
+const CHECK_RECURSIVE: boolean = false;
 
 Bun.serve({
     port: 8080,
@@ -23,7 +28,20 @@ Bun.serve({
     },
 });
 
-const gpx = await openGpx("/home/arlo/Nextcloud/tmp/gadgetbridge-running-20250814a.gpx");
-const ride = getRide(gpx);
-await db.insert(ride);
+const check = async () => {
+    const files = (await readdir(CHECK_PATH, { recursive: CHECK_RECURSIVE }))
+        .filter(name => name.endsWith(".gpx"))
+
+    for (const file of files) {
+        const gpx = await openGpx(`${CHECK_PATH}/${file}`);
+        const ride = getRide(gpx);
+        const exists = await db.isGpxPresent(ride.gadgetbridge_id);
+        if (!exists) {
+            await db.insert(ride);
+        }
+    }
+};
+
+setInterval(check, CHECK_INTERVAL_SECS * 1000);
+check();
 

@@ -19,5 +19,15 @@ const insert = async (ride: Omit<Ride, "id">): Promise<void> => {
     await sql`INSERT INTO rides ${sql(ride)}`
 };
 
-export default { get, insert };
+const isGpxPresent = async (gadgetbridge_id: string): Promise<boolean> => {
+    const [{ exists }] = await sql`
+        SELECT EXISTS(
+            SELECT 1 FROM rides
+            WHERE gadgetbridge_id=${gadgetbridge_id}
+        )
+    `;
+    return exists;
+}
+
+export default { get, insert, isGpxPresent };
 
