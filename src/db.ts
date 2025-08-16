@@ -3,6 +3,7 @@ import type { Ride } from "./types";
 
 const parseRide = (ride: any): Ride => ({
     id: ride.id,
+    gadgetbridge_id: ride.gadgetbridge_id,
     ride_date: ride.ride_date,
     distance_km: parseFloat(ride.distance_km),
     duration_sec: parseFloat(ride.duration_sec),

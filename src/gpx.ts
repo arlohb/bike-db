@@ -18,6 +18,7 @@ export const getRide = (gpx: gpxParser): Omit<Ride, "id"> => {
 
     return {
         ride_date: startTime,
+        gadgetbridge_id: gpx.metadata.name,
         distance_km: distanceKm,
         duration_sec: durationSec,
         avg_speed_kmh: 60 * 60 * distanceKm / durationSec,

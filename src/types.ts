@@ -1,5 +1,6 @@
 export type Ride = {
     id: number,
+    gadgetbridge_id: string,
     ride_date: Date,
     distance_km: number,
     duration_sec: number,
