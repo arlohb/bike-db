@@ -24,5 +24,6 @@ Bun.serve({
 });
 
 const gpx = await openGpx("/home/arlo/Nextcloud/tmp/gadgetbridge-running-20250814a.gpx");
-console.log(getRide(gpx));
+const ride = getRide(gpx);
+await db.insert(ride);
 
