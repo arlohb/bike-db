@@ -3,10 +3,7 @@ import { readdir } from "node:fs/promises"
 import { getRide, openGpx } from "./gpx";
 import db from "./db";
 import signale from "signale";
-
-const CHECK_INTERVAL_SECS: number = 10;
-const CHECK_PATH: string = "/home/arlo/Nextcloud/BikeDB";
-const CHECK_RECURSIVE: boolean = false;
+import { env, exit } from "node:process";
 
 signale.config({
     displayDate: true,
@@ -17,6 +14,25 @@ signale.config({
 signale.star("==================================");
 signale.star("=== Hello from bike-db server! ===");
 signale.star("==================================");
+
+const CHECK_INTERVAL_SECS: number = env.CHECK_INTERVAL_SECS
+    ? parseInt(env.CHECK_INTERVAL_SECS)
+    : 30;
+const CHECK_PATH: string = env.CHECK_PATH ?? "/rides";
+const CHECK_RECURSIVE: boolean = env.CHECK_RECURSIVE?.toUpperCase() === "TRUE";
+
+signale.info("Config:")
+signale.info(`  CHECK_INTERVAL_SECS: ${CHECK_INTERVAL_SECS}`);
+signale.info(`  CHECK_PATH: ${CHECK_PATH}`);
+signale.info(`  CHECK_RECURSIVE: ${CHECK_RECURSIVE}`);
+
+try {
+    await readdir(CHECK_PATH);
+    signale.success(`CHECK_PATH ${CHECK_PATH} does exist!`)
+} catch {
+    signale.fatal(`CHECK_PATH ${CHECK_PATH} doesn't exist, cannot proceed.`);
+    exit(1);
+}
 
 signale.await("Starting web server...");
 
