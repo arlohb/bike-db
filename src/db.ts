@@ -15,7 +15,7 @@ const get = async (): Promise<Ride[]> => {
 };
 
 const insert = async (ride: Omit<Ride, "id">): Promise<void> => {
-    sql`INSERT INTO rides ${sql(ride)}`
+    await sql`INSERT INTO rides ${sql(ride)}`
 };
 
 export default { get, insert };
