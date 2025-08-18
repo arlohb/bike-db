@@ -63,3 +63,12 @@ setInterval(check, CHECK_INTERVAL_SECS * 1000);
 signale.start("Check timer started!");
 check();
 
+process.on("SIGTERM", () => {
+    signale.await("Exiting...");
+    process.exit(0);
+});
+process.on("SIGINT", () => {
+    signale.await("Exiting...");
+    process.exit(0);
+});
+
