@@ -1,4 +1,3 @@
-import { sql } from "bun";
 import { readdir } from "node:fs/promises"
 import { getRide, openGpx } from "./gpx";
 import db from "./db";
@@ -33,31 +32,6 @@ try {
     signale.fatal(`CHECK_PATH ${CHECK_PATH} doesn't exist, cannot proceed.`);
     exit(1);
 }
-
-signale.await("Starting web server...");
-
-Bun.serve({
-    port: 8080,
-    routes: {
-        "/get": async () => {
-            const rides = await db.get();
-
-            return new Response(rides.map(r => JSON.stringify(r)).join());
-        },
-        "/add": () => {
-            const ride = {
-                ride_date: "",
-                distance_km: 0,
-                duration_secs: 5895,
-                avg_speed: 26.10,
-            };
-            sql`INSERT INTO rides ${sql(ride)}`
-            return new Response("Ok");
-        },
-    },
-});
-
-signale.start("Web server started!");
 
 const check = async () => {
     signale.await("Scanning folder...");
