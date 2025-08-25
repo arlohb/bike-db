@@ -7,3 +7,13 @@ export type Ride = {
     avg_speed_kmh: number,
 };
 
+export type RidePoint = {
+    id: number,
+    ride_id: number,
+    timestamp: Date,
+    lat: number,
+    lon: number,
+    ele: number,
+    cumulative_distance_km: number,
+};
+

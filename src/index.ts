@@ -46,14 +46,19 @@ const check = async () => {
         }));
 
     const doRidesExist = await Promise.all(rides
-        .map(ride => db.isGpxPresent(ride.gadgetbridge_id)));
+        .map(([ride, _]) => db.isGpxPresent(ride.gadgetbridge_id)));
 
     const newRides = rides
         .filter((_, index) => !doRidesExist[index])
 
-    await Promise.all(newRides.map(ride => {
-        signale.pending(`Found ride ${ride.gadgetbridge_id}: ${ride.distance_km.toFixed(1)}km`)
-        return db.insert(ride);
+    await Promise.all(newRides.map(async ([ride, ridePoints]) => {
+        signale.pending(`Found ride ${ride.gadgetbridge_id}: ${ride.distance_km.toFixed(1)}km, ${ridePoints.length} points`)
+
+        const rideDb = await db.insertRide(ride);
+
+        await Promise.all(ridePoints
+            .map(point => ({ ride_id: rideDb.id, ...point }))
+            .map(db.insertRidePoint))
     }));
 
     signale.success(`Scanned folder! Found ${rides.length} total, ${newRides.length} new`);
