@@ -27,9 +27,9 @@ signale.info(`  CHECK_RECURSIVE: ${CHECK_RECURSIVE}`);
 
 try {
     await readdir(CHECK_PATH);
-    signale.success(`CHECK_PATH ${CHECK_PATH} does exist!`)
-} catch {
-    signale.fatal(`CHECK_PATH ${CHECK_PATH} doesn't exist, cannot proceed.`);
+    signale.success(`CHECK_PATH ${CHECK_PATH} opened successfully!`)
+} catch (err) {
+    signale.fatal(`CHECK_PATH ${CHECK_PATH} couldn't be opened: ${err}`);
     exit(1);
 }
 
